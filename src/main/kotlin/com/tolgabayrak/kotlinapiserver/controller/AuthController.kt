@@ -5,26 +5,29 @@ import com.tolgabayrak.kotlinapiserver.model.User
 import com.tolgabayrak.kotlinapiserver.repository.UserRepository
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.SignatureAlgorithm
-import org.apache.tomcat.util.http.parser.Cookie
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
+import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import java.util.*
 
+
 @RequestMapping("api/v1/auth")
 @RestController
 class AuthController(private val userRepository: UserRepository) {
+   private val passwordEncoder = BCryptPasswordEncoder()
 
 
-     @PostMapping("/register")
+    @PostMapping("/register")
      fun register(@RequestBody body: User): ResponseEntity<User> {
          val newUser = User(
                  id = 0,
                  email = body.email,
-                 password = body.password
+                 password =  passwordEncoder.encode(body.password)
          )
          return ResponseEntity(userRepository.save(newUser), HttpStatus.CREATED)
 
@@ -34,7 +37,8 @@ class AuthController(private val userRepository: UserRepository) {
     fun login(@RequestBody body: User): ResponseEntity<Message> {
         val user = this.userRepository.findByEmail(body.email) ?: return ResponseEntity.badRequest().body(Message("Email Not Found"))
 
-        if(!user.comparePassword(body.password)){
+        if(user.password !=  body.password){
+            //println(passwordEncoder.encode(body.password))
             return ResponseEntity.badRequest().body(Message("Invalid password"))
         }
         val issuer = user.id.toString()
@@ -47,6 +51,7 @@ class AuthController(private val userRepository: UserRepository) {
         val cookie = jakarta.servlet.http.Cookie("access_token", jwt)
         cookie.isHttpOnly = true
 
+        println("tolga")
         return ResponseEntity.ok(Message("User login is Successfully"))
     }
 
