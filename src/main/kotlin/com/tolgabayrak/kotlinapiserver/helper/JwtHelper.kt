@@ -6,7 +6,11 @@ import com.auth0.jwt.algorithms.Algorithm
 
 class JwtHelper {
 
-    public fun generateAccessToken(data: Any){
+    public fun generateAccessToken(data: any){
 
+    }
+
+    public fun generateRefreshToken(data: any){
+     
     }
 }
